@@ -52,6 +52,8 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/juxuny/yc v0.0.0-20220412111211-8910fc9ed4ff h1:AkoEwJkkPLUXaHW3zSmtg5am4L61CyZ4gqoYgPYQLUE=
 github.com/juxuny/yc v0.0.0-20220412111211-8910fc9ed4ff/go.mod h1:rSKddSSC1EtgoGM5nD48W+xfKqj1GQqzyxsvlES3uDE=
+github.com/juxuny/yc v0.0.0-20220412121652-40bfeeaf768f h1:+avbWhgrxfvzn+UyTqscnoHPA9gJ0AXplns8RNo0Nrs=
+github.com/juxuny/yc v0.0.0-20220412121652-40bfeeaf768f/go.mod h1:rSKddSSC1EtgoGM5nD48W+xfKqj1GQqzyxsvlES3uDE=
 github.com/petermattis/goid v0.0.0-20220302125637-5f11c28912df/go.mod h1:pxMtw7cyUw6B2bRH0ZBANSPg+AoSud1I1iyJHI69jH4=
 github.com/petermattis/goid v0.0.0-20220331194723-8ee3e6ded87a h1:VXRRto5GMJPNfB7MNbUVoFhtxwoYjBEsIt/NpWg42U0=
 github.com/petermattis/goid v0.0.0-20220331194723-8ee3e6ded87a/go.mod h1:pxMtw7cyUw6B2bRH0ZBANSPg+AoSud1I1iyJHI69jH4=
