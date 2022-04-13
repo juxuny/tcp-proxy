@@ -8,7 +8,7 @@ x-default: &default
 services:
   proxy:
     image: registry.cn-shenzhen.aliyuncs.com/juxuny-public/tcp-proxy:v1.0.0
-    entrypoint: /app/entrypoint -l :20000 -r ${HOST_IP} --to-proxy-protocol --from-de-xun
+    entrypoint: /app/entrypoint -l :20000 -r ${HOST_IP}:10000 --to-proxy-protocol --from-de-xun
     ports:
       - 20000:20000
     <<: *default
