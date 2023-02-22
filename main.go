@@ -16,6 +16,7 @@ type run struct {
 	FromDeXun       bool
 	Listen          string
 	Remote          string
+	Timeout         int
 }
 
 func (r *run) Prepare(cmd *cobra.Command) {
@@ -26,6 +27,7 @@ func (r *run) InitFlag(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVar(&r.FromDeXun, "from-de-xun", false, "enable dexunyun proxy, ref: https://www.dexunyun.com/")
 	cmd.PersistentFlags().StringVarP(&r.Listen, "listen", "l", ":20000", "listen address")
 	cmd.PersistentFlags().StringVarP(&r.Remote, "remote", "r", "127.0.0.1:10000", "backend nginx port")
+	cmd.PersistentFlags().IntVarP(&r.Timeout, "timeout", "t", 60, "timeout")
 }
 
 const bufferLen = 10240
@@ -40,6 +42,7 @@ func (r run) transfer(ctx context.Context, cancel context.CancelFunc, from net.C
 			return
 		default:
 		}
+		from.SetReadDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
 		n, err := from.Read(buf)
 		if err != nil {
 			log.Debug(err)

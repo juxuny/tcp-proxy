@@ -1,4 +1,4 @@
-FROM golang:1.16.4 AS builder
+FROM golang:1.17.4 AS builder
 #ARG GOPRIVATE
 #ARG GIT_USER
 #ARG GIT_TOKEN
@@ -8,8 +8,7 @@ COPY go.sum /src/
 RUN cd /src && go env -w GOPROXY=https://goproxy.cn && go mod download
 COPY . /src/
 RUN go env
-RUN cd /src && \
-    CGO_ENABLED=0 go build -o app
+RUN cd /src && CGO_ENABLED=0 go build -o app
 
 # final stage
 #FROM golang:1.16.4
