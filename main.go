@@ -33,22 +33,25 @@ func (r *run) InitFlag(cmd *cobra.Command) {
 const bufferLen = 10240
 
 func (r run) transfer(ctx context.Context, cancel context.CancelFunc, from net.Conn, to net.Conn) {
+	defer func() {
+		_ = from.Close()
+		_ = to.Close()
+	}()
 	buf := make([]byte, bufferLen)
 	for {
 		select {
 		case <-ctx.Done():
-			_ = from.Close()
-			_ = to.Close()
 			return
 		default:
 		}
-		from.SetReadDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
+		_ = from.SetDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
 		n, err := from.Read(buf)
 		if err != nil {
 			log.Debug(err)
 			cancel()
 			return
 		}
+		_ = to.SetDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
 		_, err = to.Write(buf[:n])
 		if err != nil {
 			log.Error(err)
