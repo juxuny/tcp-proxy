@@ -86,6 +86,7 @@ func (r run) handleClient(client net.Conn) {
 		if err := r.sendClientAddress(clientAddress, backendConn); err != nil {
 			log.Error(err)
 			_ = client.Close()
+			_ = backendConn.Close()
 			return
 		}
 	}
