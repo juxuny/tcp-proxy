@@ -44,14 +44,16 @@ func (r run) transfer(ctx context.Context, cancel context.CancelFunc, from net.C
 			return
 		default:
 		}
-		_ = from.SetDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
+		if r.Timeout > 0 {
+			_ = from.SetDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
+			_ = to.SetDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
+		}
 		n, err := from.Read(buf)
 		if err != nil {
 			log.Debug(err)
 			cancel()
 			return
 		}
-		_ = to.SetDeadline(time.Now().Add(time.Second * time.Duration(r.Timeout)))
 		_, err = to.Write(buf[:n])
 		if err != nil {
 			log.Error(err)
