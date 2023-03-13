@@ -27,7 +27,7 @@ func (r *run) InitFlag(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVar(&r.FromDeXun, "from-de-xun", false, "enable dexunyun proxy, ref: https://www.dexunyun.com/")
 	cmd.PersistentFlags().StringVarP(&r.Listen, "listen", "l", ":20000", "listen address")
 	cmd.PersistentFlags().StringVarP(&r.Remote, "remote", "r", "127.0.0.1:10000", "backend nginx port")
-	cmd.PersistentFlags().IntVarP(&r.Timeout, "timeout", "t", 60, "timeout")
+	cmd.PersistentFlags().IntVarP(&r.Timeout, "timeout", "t", 0, "timeout")
 }
 
 const bufferLen = 10240
