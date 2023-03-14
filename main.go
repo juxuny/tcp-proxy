@@ -50,13 +50,13 @@ func (r run) transfer(ctx context.Context, cancel context.CancelFunc, from net.C
 		}
 		n, err := from.Read(buf)
 		if err != nil {
-			log.Debug(err)
+			//log.Debug(err)
 			cancel()
 			return
 		}
 		_, err = to.Write(buf[:n])
 		if err != nil {
-			log.Error(err)
+			//log.Error(err)
 			cancel()
 			return
 		}
@@ -67,7 +67,7 @@ func (r run) sendClientAddress(clientAddress string, conn net.Conn) error {
 	s := strings.Split(clientAddress, ":")
 	d := strings.Split(conn.RemoteAddr().String(), ":")
 	buf := []byte(fmt.Sprintf("PROXY TCP4 %s %s %s %s\r\n", s[0], d[0], s[1], d[1]))
-	log.Debug(string(buf))
+	//log.Debug(string(buf))
 	_, err := conn.Write(buf)
 	return err
 }
@@ -92,7 +92,7 @@ func (r run) handleClient(client net.Conn) {
 			return
 		}
 	}
-	log.Info("accepted from:", clientAddress)
+	//log.Info("accepted from:", clientAddress)
 	ctx, cancel := context.WithCancel(context.Background())
 	go r.transfer(ctx, cancel, client, backendConn)
 	go r.transfer(ctx, cancel, backendConn, client)
@@ -104,6 +104,9 @@ func (r run) start() {
 		log.Error(err)
 		return
 	}
+	defer func() {
+		_ = ln.Close()
+	}()
 	for {
 		client, err := ln.Accept()
 		if err != nil {
