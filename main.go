@@ -2,15 +2,20 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/juxuny/yc/cmd"
-	"github.com/juxuny/yc/log"
+	ycLog "github.com/juxuny/yc/log"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
 	"time"
+)
+
+var (
+	log ycLog.ILogger
 )
 
 type run struct {
@@ -22,6 +27,11 @@ type run struct {
 	HealthCheck            string
 	CheckDurationInSeconds int64
 	Debug                  bool
+	Https                  bool
+	SslVerify              bool
+}
+
+func (r *run) BeforeRun(cmd *cobra.Command) {
 }
 
 func (r *run) Prepare(cmd *cobra.Command) {
@@ -36,6 +46,8 @@ func (r *run) InitFlag(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVar(&r.HealthCheck, "health-check", "", "health check url path")
 	cmd.PersistentFlags().Int64Var(&r.CheckDurationInSeconds, "check-duration", 1, "check duration in seconds")
 	cmd.PersistentFlags().BoolVar(&r.Debug, "debug", false, "enable debug mode")
+	cmd.PersistentFlags().BoolVar(&r.Https, "https", false, "enable https")
+	cmd.PersistentFlags().BoolVar(&r.SslVerify, "ssl-verify", true, "verify ssl cert")
 }
 
 const bufferLen = 10240
@@ -133,38 +145,46 @@ func (r *run) healthCheck() error {
 	}
 	healthCheckUrl := r.HealthCheck
 	if strings.Index(healthCheckUrl, "http") != 0 {
-		healthCheckUrl = "http://" + addr + healthCheckUrl
+		if r.Https {
+			healthCheckUrl = "https://" + addr + healthCheckUrl
+		} else {
+			healthCheckUrl = "http://" + addr + healthCheckUrl
+		}
 	}
+	log.Debug("create request: ", healthCheckUrl)
 	req, err := http.NewRequest(http.MethodGet, healthCheckUrl, nil)
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-	client := http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-			DialContext: func(ctx context.Context, network string, address string) (conn net.Conn, err error) {
-				dialer := &net.Dialer{
-					Timeout:   2 * time.Second,
-					KeepAlive: 3 * time.Second,
-				}
-				conn, err = dialer.DialContext(ctx, network, address)
-				if err != nil {
-					log.Error(err)
-					return nil, err
-				}
-				if r.FromDeXun {
-					_, _ = conn.Write(make([]byte, 8))
-				}
-				return
-			},
-			ForceAttemptHTTP2:     true,
-			MaxIdleConns:          100,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: func(ctx context.Context, network string, address string) (conn net.Conn, err error) {
+			dialer := &net.Dialer{
+				Timeout:   2 * time.Second,
+				KeepAlive: 3 * time.Second,
+			}
+			conn, err = dialer.DialContext(ctx, network, address)
+			if err != nil {
+				log.Error(err)
+				return nil, err
+			}
+			if r.FromDeXun {
+				_, _ = conn.Write(make([]byte, 8))
+			}
+			return
 		},
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !r.SslVerify},
 	}
+	client := http.Client{
+		Transport: transport,
+	}
+	log.Debug("start health check")
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -172,7 +192,12 @@ func (r *run) healthCheck() error {
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	_, _ = ioutil.ReadAll(resp.Body)
+	respData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err)
+	} else {
+		log.Debug("resp data:", string(respData))
+	}
 	if resp.StatusCode/100 != 2 {
 		return fmt.Errorf("health check failed status = %d", resp.StatusCode)
 	}
@@ -182,10 +207,11 @@ func (r *run) healthCheck() error {
 
 func (r *run) Run() {
 	if r.Debug {
-		log.SetLevel(log.LevelDebug)
+		ycLog.SetLevel(ycLog.LevelDebug)
 	} else {
-		log.SetLevel(log.LevelInfo)
+		ycLog.SetLevel(ycLog.LevelInfo)
 	}
+	log = ycLog.NewRpcLogger()
 	if r.HealthCheck != "" {
 		go checkDaemon(r.healthCheck, r.CheckDurationInSeconds)
 	}
