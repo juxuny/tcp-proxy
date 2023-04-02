@@ -12,7 +12,7 @@ func randPort() uint32 {
 	return rand.Uint32()
 }
 
-func (r run) getClientAddress(conn net.Conn) (string, error) {
+func (r *run) getClientAddress(conn net.Conn) (string, error) {
 	if r.FromDeXun {
 		header := make([]uint8, 8)
 		_, err := conn.Read(header)
