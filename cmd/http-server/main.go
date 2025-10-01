@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/juxuny/yc/cmd"
 	"github.com/juxuny/yc/log"
 	"github.com/spf13/cobra"
-	"net/http"
-	"time"
 )
 
 type server struct {
